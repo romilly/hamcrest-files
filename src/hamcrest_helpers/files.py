@@ -28,7 +28,22 @@ class DirectoryContentsMatcher(BaseMatcher):
         self.paths = paths
 
     def _matches(self, item: T) -> bool:
-        return os.path.isdir(item) and set(os.listdir(item)) == set(self.paths)
+        return os.path.isdir(item) and self.contents_match(item)
+
+    def contents_match(self, item):
+        contents = self.get_contents(item)
+        return set(contents) == set(self.paths)
+
+    def get_contents(self, item):
+        contents = []
+        for root, directories, files in os.walk(item):
+            for file in files:
+                relpath = os.path.relpath(root, item)
+                if relpath == '.':
+                    contents.append(file)
+                else:
+                    contents.append(os.path.join(relpath, file))
+        return contents
 
     def describe_to(self, description: Description) -> None:
         description.append_text('a directory containing %s' % ', '.join(self.paths))
@@ -40,7 +55,7 @@ class DirectoryContentsMatcher(BaseMatcher):
         elif 0 ==len(os.listdir(item)):
             mismatch_description.append_text(' which is an empty directory')
         else:
-            mismatch_description.append_text(' which contains %s' % ', '.join(os.listdir(item)))
+            mismatch_description.append_text(' which contains %s' % ', '.join(self.get_contents(item)))
 
 def contains_files(*paths):
     return DirectoryContentsMatcher(paths)
