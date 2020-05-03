@@ -3,6 +3,7 @@ import os
 from hamcrest.core.base_matcher import BaseMatcher, T
 from hamcrest.core.description import Description
 
+
 def read(f):
     with open(f) as input_file:
         return input_file.read()
@@ -36,7 +37,7 @@ class DirectoryContentsMatcher(BaseMatcher):
 
     def contents_match(self, item):
         contents = self.get_contents(item)
-        return set(contents) == set(self.paths)
+        return set(contents).issuperset(set(self.paths))
 
     def get_contents(self, item):
         contents = []
